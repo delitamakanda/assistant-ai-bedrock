@@ -68,10 +68,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "assistant-ai:build:production"
+              "buildTarget": "assistant-ai:build:production"
             },
             "development": {
-              "browserTarget": "assistant-ai:build:development"
+              "buildTarget": "assistant-ai:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -79,7 +79,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "assistant-ai:build"
+            "buildTarget": "assistant-ai:build"
           }
         },
         "test": {
