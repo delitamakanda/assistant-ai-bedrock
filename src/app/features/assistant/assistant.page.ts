@@ -1,11 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 
 @Component({
-  selector: 'app-assistant.page',
-  templateUrl: './assistant.page.component.html',
-  styleUrls: ['./assistant.page.component.css']
+  selector: 'app-assistant-page',
+  templateUrl: './assistant.page.html',
+  styleUrls: ['./assistant.page.css']
 })
-export class Assistant.PageComponent implements OnInit {
+export class AssistantPage implements OnInit {
 
   constructor() { }
 

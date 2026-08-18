@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { Assistant.StoreService } from './assistant.store.service';
+import { AssistantStore } from './assistant.store';
 
-describe('Assistant.StoreService', () => {
-  let service: Assistant.StoreService;
+describe('AssistantStore', () => {
+  let service: AssistantStore;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(Assistant.StoreService);
+    service = TestBed.inject(AssistantStore);
   });
 
   it('should be created', () => {
