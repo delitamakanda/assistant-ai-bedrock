@@ -32,7 +32,7 @@ jobs:
           cache-dependency-path: package-lock.json
       - name: Install dependencies and build
         run: |
-          npm ci
+          npm install
           npm run build -- --configuration production  --base-href "/${{ github.event.repository.name }}/"
           cp dist/assistant-ai/browser/index.html dist/assistant-ai/browser/404.html
           touch dist/assistant-ai/browser/.nojekyll
