@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:3000' // Replace with your backend API URL
+  apiUrl: 'https://assistant-ai-bedrock.delita-makanda.workers.dev/' // Replace with your backend API URL
 };
 
 /*
