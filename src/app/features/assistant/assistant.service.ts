@@ -9,8 +9,8 @@ import { environment } from '@env/environment';
 export class AssistantService {
   private readonly http = inject(HttpClient);
 
-  send(message: string) {
-    const url = `${environment.apiUrl}/assistant`;
-    return this.http.post(url, { message });
+  send(messages: any[]){
+    const url = `${environment.apiUrl}/chat`;
+    return this.http.post(url, { messages });
   }
 }
