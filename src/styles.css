@@ -1,1 +1,49 @@
-/* You can add global styles to this file, and also import other style files */
+@import '@fontsource-variable/literata';
+@import '@fontsource-variable/schibsted-grotesk';
+
+:root {
+  --basalt: #18222d;
+  --mist: #e8ecef;
+  --paper: #f6f8f9;
+  --sandstone: #dccdb3;
+  --verdigris: #1b6b67;
+  --verdigris-deep: #124a47;
+  --line: #c6ced5;
+  --danger: #9e2b25;
+  --danger-bg: #f6e3e0;
+  --font-ui: 'Schibsted Grotesk Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-text: 'Literata Variable', Georgia, 'Times New Roman', serif;
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--mist);
+  color: var(--basalt);
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--verdigris);
+  outline-offset: 2px;
+}

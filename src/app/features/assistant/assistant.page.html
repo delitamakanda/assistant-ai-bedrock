@@ -1,1 +1,66 @@
-<p>assistantpage works!</p>
+<main class="chat">
+  <header class="bar">
+    <span class="mark" aria-hidden="true"><i></i><i></i><i></i></span>
+    <h1>Assistant</h1>
+    <button type="button" class="ghost" (click)="store.reset()" [disabled]="store.isEmpty() && !store.error()">
+      Nouvelle conversation
+    </button>
+  </header>
+
+  <div #log class="log" role="log" aria-live="polite" aria-relevant="additions" [attr.aria-busy]="store.isSending()">
+    <div class="column">
+      @if (store.isEmpty() && !store.isSending()) {
+        <section class="empty" aria-labelledby="empty-title">
+          <h2 id="empty-title">Que veux-tu savoir ?</h2>
+          <p>Écris ta question ci-dessous, ou pars d'une de ces idées.</p>
+          <ul>
+            @for (suggestion of suggestions; track suggestion) {
+              <li>
+                <button type="button" (click)="ask(suggestion)">{{ suggestion }}</button>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+
+      @for (message of store.messages(); track message.id) {
+        <article class="msg" [class.msg-user]="message.role === 'user'" [class.msg-assistant]="message.role !== 'user'">
+          <h2 class="sr-only">{{ message.role === 'user' ? 'Toi' : 'Assistant' }}</h2>
+          <p>{{ message.content }}</p>
+        </article>
+      }
+
+      @if (store.isSending()) {
+        <p class="wait" role="status">
+          <span class="strata" aria-hidden="true"><i></i><i></i><i></i></span>
+          L'assistant rédige sa réponse
+        </p>
+      }
+
+      @if (store.error(); as error) {
+        <div class="alert" role="alert">
+          <p>{{ error }}</p>
+          <button type="button" (click)="store.retry()">Réessayer</button>
+        </div>
+      }
+    </div>
+  </div>
+
+  <form class="composer" (submit)="$event.preventDefault(); submit()">
+    <div class="column row">
+      <label class="sr-only" for="prompt">Ton message</label>
+      <textarea
+        #prompt
+        id="prompt"
+        rows="1"
+        placeholder="Écris ton message"
+        autocomplete="off"
+        [value]="draft()"
+        (input)="onInput($event)"
+        (keydown.enter)="onEnter($event)"
+      ></textarea>
+      <button type="submit" class="send" [disabled]="!draft().trim() || store.isSending()">Envoyer</button>
+    </div>
+    <p class="hint column">Entrée pour envoyer, Maj+Entrée pour un retour à la ligne.</p>
+  </form>
+</main>
