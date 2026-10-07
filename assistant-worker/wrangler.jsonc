@@ -28,8 +28,10 @@
 	 * Note: Use secrets to store sensitive data.
 	 * https://developers.cloudflare.com/workers/configuration/secrets/
 	 */
+	"ai": {
+		"binding": "AI"
+	},
 	"vars": {
-		"CLOUDFLARE_ACCOUNT_ID": "071587cbe85b228994ffa9901527a9f0",
 		"AI_GATEWAY_ID": "assistant-gateway"
 	}
 	/**
