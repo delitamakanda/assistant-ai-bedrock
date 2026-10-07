@@ -8,7 +8,7 @@ describe('AssistantPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ AssistantPage ]
+      imports: [AssistantPage]
     })
     .compileComponents();
   });
