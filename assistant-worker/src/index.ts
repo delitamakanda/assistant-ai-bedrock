@@ -1,6 +1,6 @@
 /**
  * Worker de chat : reçoit `POST /chat` du front (GitHub Pages) et relaie les
- * messages vers Qwen3 (Workers AI) via le binding `AI`, en passant par la
+ * messages vers Mistral Small 3.1 (Workers AI) via le binding `AI`, en passant par la
  * passerelle Cloudflare AI Gateway (logs, cache, limites). Aucun secret requis.
  */
 const ALLOWED_ORIGINS = [
@@ -8,12 +8,11 @@ const ALLOWED_ORIGINS = [
 	"https://delitamakanda.github.io",
 ];
 
-const MODEL = '@cf/qwen/qwen3-30b-a3b-fp8';
+const MODEL = '@cf/mistralai/mistral-small-3.1-24b-instruct';
 const ROLES = ['system', 'user', 'assistant'] as const;
 const MAX_MESSAGES = 50;
 const MAX_CONTENT_LENGTH = 8000;
-/** Qwen3 raisonne avant de répondre : la réserve doit couvrir le raisonnement et la réponse. */
-const MAX_OUTPUT_TOKENS = 2000;
+const MAX_OUTPUT_TOKENS = 1500;
 
 export interface Env {
 	AI: Ai;
@@ -25,7 +24,7 @@ interface ChatMessage {
 	content: string;
 }
 
-/** Réponse de Workers AI au format chat completion (`response` : ancien format de certains modèles). */
+/** Texte de la réponse : `response` (Mistral) ou `choices[0].message.content` (format chat completion, ex. Qwen3). */
 function extractContent(result: unknown): string | undefined {
 	if (typeof result !== 'object' || result === null) {
 		return undefined;

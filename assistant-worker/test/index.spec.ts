@@ -69,7 +69,7 @@ describe("assistant worker", () => {
 	});
 
 	describe("POST /chat", () => {
-		it("renvoie la réponse de Qwen3 via la passerelle", async () => {
+		it("renvoie la réponse du modèle via la passerelle", async () => {
 			const { env, run } = createEnv(() => completion("Salut !"));
 
 			const response = await worker.fetch(chat(validBody), env);
@@ -80,18 +80,18 @@ describe("assistant worker", () => {
 
 			expect(run).toHaveBeenCalledTimes(1);
 			const [model, inputs, options] = run.mock.calls[0] as unknown as [string, Record<string, unknown>, unknown];
-			expect(model).toBe("@cf/qwen/qwen3-30b-a3b-fp8");
+			expect(model).toBe("@cf/mistralai/mistral-small-3.1-24b-instruct");
 			expect(inputs.messages).toEqual(validBody.messages);
 			expect(inputs).not.toHaveProperty("mode");
 			expect(options).toEqual({ gateway: { id: "assistant-gateway" } });
 		});
 
-		it("accepte l'ancien format `response`", async () => {
-			const { env } = createEnv(() => ({ response: "Ancien format" }));
+		it("lit le format `response` de Mistral", async () => {
+			const { env } = createEnv(() => ({ response: "Format Mistral" }));
 
 			const response = await worker.fetch(chat(validBody), env);
 
-			expect(await response.json()).toEqual({ content: "Ancien format" });
+			expect(await response.json()).toEqual({ content: "Format Mistral" });
 		});
 
 		it("rejette un corps qui n'est pas du JSON, avec les en-têtes CORS", async () => {
@@ -135,7 +135,7 @@ describe("assistant worker", () => {
 
 		it.each([
 			["aucun choix", { choices: [] }],
-			["contenu vide (raisonnement trop long)", completion("")],
+			["contenu vide", completion("")],
 			["contenu absent", {}],
 			["flux inattendu", new ReadableStream()],
 		])("renvoie 502 quand le modèle répond sans contenu (%s)", async (_label, result) => {

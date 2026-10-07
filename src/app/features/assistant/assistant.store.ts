@@ -9,7 +9,10 @@ export const MAX_HISTORY = 20;
 
 export const SYSTEM_PROMPT: ChatPayloadMessage = {
   role: 'system',
-  content: 'Tu es un assistant utile et concis. Réponds en français, sauf si on te demande une autre langue.',
+  content:
+    "Tu es un assistant serviable et pédagogue. Réponds en français, sauf si on te demande une autre langue. " +
+    "Donne des réponses complètes : explique le raisonnement, ajoute des exemples concrets quand ils aident, " +
+    "et propose une suite quand c'est pertinent.",
 };
 
 @Injectable()
