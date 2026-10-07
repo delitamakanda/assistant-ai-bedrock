@@ -1,23 +1,23 @@
 /**
  * Worker de chat : reçoit `POST /chat` du front (GitHub Pages) et relaie les
- * messages vers Claude (AWS Bedrock) via Cloudflare AI Gateway.
- *
- * Secret requis : `CF_AIG_TOKEN` (`npx wrangler secret put CF_AIG_TOKEN`).
+ * messages vers Qwen3 (Workers AI) via le binding `AI`, en passant par la
+ * passerelle Cloudflare AI Gateway (logs, cache, limites). Aucun secret requis.
  */
 const ALLOWED_ORIGINS = [
 	"http://localhost:4200",
 	"https://delitamakanda.github.io",
 ];
 
-const MODEL = 'aws-bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0';
+const MODEL = '@cf/qwen/qwen3-30b-a3b-fp8';
 const ROLES = ['system', 'user', 'assistant'] as const;
 const MAX_MESSAGES = 50;
 const MAX_CONTENT_LENGTH = 8000;
+/** Qwen3 raisonne avant de répondre : la réserve doit couvrir le raisonnement et la réponse. */
+const MAX_OUTPUT_TOKENS = 2000;
 
 export interface Env {
-	CLOUDFLARE_ACCOUNT_ID: string;
+	AI: Ai;
 	AI_GATEWAY_ID: string;
-	CF_AIG_TOKEN: string;
 }
 
 interface ChatMessage {
@@ -25,8 +25,17 @@ interface ChatMessage {
 	content: string;
 }
 
-interface GatewayResponse {
-	choices?: Array<{ message?: { content?: string } }>;
+/** Réponse de Workers AI au format chat completion (`response` : ancien format de certains modèles). */
+function extractContent(result: unknown): string | undefined {
+	if (typeof result !== 'object' || result === null) {
+		return undefined;
+	}
+	const { choices, response } = result as {
+		choices?: Array<{ message?: { content?: unknown } }>;
+		response?: unknown;
+	};
+	const content = choices?.[0]?.message?.content ?? response;
+	return typeof content === 'string' && content.trim() ? content : undefined;
 }
 
 function corsHeaders(request: Request): Record<string, string> {
@@ -90,11 +99,6 @@ export default {
 } satisfies ExportedHandler<Env>;
 
 async function handleChatRequest(request: Request, env: Env): Promise<Response> {
-	if (!env.CF_AIG_TOKEN) {
-		console.error('CF_AIG_TOKEN is not set: run `wrangler secret put CF_AIG_TOKEN`');
-		return json(request, { error: 'Server is not configured' }, 500);
-	}
-
 	let body: unknown;
 	try {
 		body = await request.json();
@@ -111,42 +115,22 @@ async function handleChatRequest(request: Request, env: Env): Promise<Response> 
 		);
 	}
 
-	const gatewayUrl = `https://gateway.ai.cloudflare.com/v1/${env.CLOUDFLARE_ACCOUNT_ID}/${env.AI_GATEWAY_ID}/compat/chat/completions`;
-
-	let response: Response;
+	let result: unknown;
 	try {
-		response = await fetch(gatewayUrl, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'cf-aig-authorization': `Bearer ${env.CF_AIG_TOKEN}`,
-			},
-			body: JSON.stringify({
-				model: MODEL,
-				messages,
-				temperature: 0.7,
-				max_tokens: 1000,
-			}),
-		});
+		result = await env.AI.run(
+			MODEL,
+			{ messages, temperature: 0.7, max_tokens: MAX_OUTPUT_TOKENS },
+			{ gateway: { id: env.AI_GATEWAY_ID } },
+		);
 	} catch (error) {
-		console.error('AI Gateway unreachable', error);
-		return json(request, { error: 'AI service unreachable' }, 502);
+		// Le détail reste dans les logs : on ne le renvoie pas au navigateur.
+		console.error('Workers AI call failed', error);
+		return json(request, { error: 'AI service returned an error' }, 502);
 	}
 
-	if (!response.ok) {
-		// Le détail reste dans les logs : on ne renvoie pas le texte brut de la passerelle au navigateur.
-		console.error(`AI Gateway responded ${response.status}`, await response.text());
-		return json(request, { error: 'AI service returned an error', upstreamStatus: response.status }, 502);
-	}
-
-	let content: string | undefined;
-	try {
-		const data = (await response.json()) as GatewayResponse;
-		content = data.choices?.[0]?.message?.content;
-	} catch (error) {
-		console.error('AI Gateway returned an invalid response', error);
-	}
+	const content = extractContent(result);
 	if (!content) {
+		console.error('Workers AI returned no content', JSON.stringify(result));
 		return json(request, { error: 'AI service returned an empty response' }, 502);
 	}
 
