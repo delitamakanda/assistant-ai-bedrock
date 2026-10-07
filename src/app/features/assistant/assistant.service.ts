@@ -1,7 +1,8 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { inject } from '@angular/core';
+import type { Observable } from 'rxjs';
 import { environment } from '@env/environment';
+import type { ChatPayloadMessage, ChatReply } from './assistant.models';
 
 @Injectable({
   providedIn: 'root'
@@ -9,8 +10,8 @@ import { environment } from '@env/environment';
 export class AssistantService {
   private readonly http = inject(HttpClient);
 
-  send(messages: any[]){
+  send(messages: ChatPayloadMessage[]): Observable<ChatReply> {
     const url = `${environment.apiUrl}/chat`;
-    return this.http.post(url, { messages });
+    return this.http.post<ChatReply>(url, { messages });
   }
 }
